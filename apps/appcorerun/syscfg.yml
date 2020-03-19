@@ -1,0 +1,23 @@
+#
+# Wyres
+#
+
+# all board specific config is in the target syscfg.yml.
+
+# here we define the generic build info that jenkins can overwrite
+syscfg.defs:
+    BUILD_VERSION_MAJOR: 
+        description: the defined version major value
+        value: 0
+    BUILD_VERSION_MINOR: 
+        description: the defined version minor value
+        value: 0
+    BUILD_VERSION_DEVNUMBER: 
+        description: the builds iteration number if not a final release build
+        value: 0
+
+
+    UNITTEST:
+        description: "enable unittest execution in main"
+        value: 0
+ 

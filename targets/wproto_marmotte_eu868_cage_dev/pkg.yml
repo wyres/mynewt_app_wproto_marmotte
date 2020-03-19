@@ -1,0 +1,12 @@
+pkg.name: targets/wproto_test_eu868_none_dev
+pkg.type: target
+pkg.description: WProto based target for EU868 with no option card
+pkg.author: 
+pkg.homepage: 
+
+
+pkg.deps:
+    - "@app-generic/app-core"
+    - "@app-generic/mod-env"
+
+pkg.cflags: -DREGION_EU868
