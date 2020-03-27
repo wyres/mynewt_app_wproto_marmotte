@@ -41,12 +41,6 @@ syscfg.vals:
     UART_SELECT0: -1
     UART_SELECT1: -1
     
-    # enable ADC to get battery/light sensors
-    ADC: 1
-    
-    # some issues around the bus driver architecture with STM32 it seems
-    USE_BUS_I2C: 0
-
     #lora wan
     LORAWAN_REGION_EU868: 1
     LORAWAN_SE_SOFT: 1

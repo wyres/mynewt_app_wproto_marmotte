@@ -1,6 +1,6 @@
-pkg.name: targets/wproto_test_eu868_none_dev
+pkg.name: targets/wproto_marmotte_eu868_cage_dev
 pkg.type: target
-pkg.description: WProto based target for EU868 with no option card
+pkg.description: WProto based target for EU868 with external sensors for cage
 pkg.author: 
 pkg.homepage: 
 
