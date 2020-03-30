@@ -16,31 +16,34 @@ syscfg.vals:
     CONSOLE_UART: 0
     # how to configure a string in these defines? or should it just be "0"? anyway uart0 is default...
     CONSOLE_UART_DEV: '"UART0_DEV"'
-    CONSOLE_UART_BAUD: 19200
+    CONSOLE_UART_BAUD: 115200
     CONSOLE_UART_TX_BUF_SIZE: 256
 
     WCONSOLE_ENABLED: 1
     WCONSOLE_UART_DEV:  'UART0_DEV'
-    WCONSOLE_UART_BAUD: 19200
+    WCONSOLE_UART_BAUD: 115200
     WCONSOLE_UART_SELECT: -1         # ext uart selector on dcard
 
     #  enable debug bitbang uart defined in our bsp if reqd for logs
-    UART_DBG: 1
+    UART_DBG: 0
     UART_DBG_BAUD: 19200
-    UARTBB_0_PIN_TX : 19     # extbutton
+    UARTBB_0_PIN_TX : -1     # extbutton
     UARTBB_0_PIN_RX : -1      # tx only
     
     # doing logging to a UART?
     LOG_UART_ENABLED: 1
-    # using the debug bitbang uart device
-    LOG_UART: 'UARTDBG_DEV'             #'"uartbb0"'
-    LOG_UART_BAUDRATE: 19200
+    #set debug uart device
+    LOG_UART: 'UART0_DEV'             #'UARTDBG_DEV'
+    LOG_UART_BAUDRATE: 115200
     LOG_UART_SELECT: -1
 
     # if using a daughter card with a uart selector set control pins
     UART_SELECT0: -1
     UART_SELECT1: -1
     
+    BUTTON_IO : 19  # PB3
+    DOOR_IO : 8     # PA8
+
     #lora wan
     LORAWAN_REGION_EU868: 1
     LORAWAN_SE_SOFT: 1
