@@ -20,4 +20,14 @@ syscfg.defs:
     UNITTEST:
         description: "enable unittest execution in main"
         value: 0
+
+
+    BUTTON_IO:
+        description: "GPIO for button connection"
+        value: -1
+
+    DOOR_IO:
+        description: "GPIO for door state detector connection"
+        value: -1
+            
  

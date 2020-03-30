@@ -25,12 +25,17 @@
 #include "app-core/app_core.h"
 #include "app-core/app_msg.h"
 
+#define USER_BUTTON  ((int8_t)MYNEWT_VAL(BUTTON_IO))
+#define DOOR_CONTACT  ((int8_t)MYNEWT_VAL(DOOR_IO))
 
 // COntext data
 static struct appctx {
-    uint32_t lastRelease;
+    uint32_t lastButtonReleaseTS;
+    uint32_t lastDoorOpenedTS;
+    uint32_t lastDoorClosedTS;
 } _ctx;
 static void buttonChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_PRESS_TYPE_t currentPressType);
+static void doorChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_PRESS_TYPE_t currentPressType);
 
 // My api functions
 static uint32_t start() {
@@ -49,8 +54,9 @@ static void deepsleep() {
     // ensure sensors are off
 }
 static bool getData(APP_CORE_UL_t* ul) {
-    log_info("MP: UL cage last button @%d", _ctx.lastRelease);
-    // TOD check movement, falls, etc
+    log_info("MP: UL cage last button @%d, opened @%d, closed@%d", _ctx.lastButtonReleaseTS, _ctx.lastDoorOpenedTS, _ctx.lastDoorClosedTS);
+    // TODO write to UL TS and current states
+
     return false;       // nothing vital here
 }
 
@@ -67,8 +73,14 @@ void mod_cage_init(void) {
     // hook app-core for env data
     AppCore_registerModule("CAGE", APP_MOD_PTI, &_api, EXEC_PARALLEL);
 
-    // add cb for button press, no context required
-    SRMgr_registerButtonCB(buttonChangeCB, NULL);
+    if (USER_BUTTON>=0) {
+        // add cb for button press, no context required
+        SRMgr_registerButtonCB(USER_BUTTON, buttonChangeCB, NULL);
+    }
+    if (DOOR_CONTACT>=0) {
+        // using extio as input irq
+        SRMgr_registerButtonCB(DOOR_CONTACT, doorChangeCB, NULL);
+    }
 //    log_debug("MP:initialised");
 }
 
@@ -78,12 +90,27 @@ static void buttonChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_
     if (currentState==SR_BUTTON_RELEASED) {
         // note using log_noout as button shares GPIO with debug log uart...
         log_noout("MP:button released, duration %d ms, press type:%d", 
-            (SRMgr_getLastButtonReleaseTS()-SRMgr_getLastButtonPressTS()),
-            SRMgr_getLastButtonPressType());
-        _ctx.lastRelease = SRMgr_getLastButtonReleaseTS();
+            (SRMgr_getLastButtonReleaseTS(USER_BUTTON)-SRMgr_getLastButtonPressTS(USER_BUTTON)),
+            SRMgr_getLastButtonPressType(USER_BUTTON));
+        _ctx.lastButtonReleaseTS = SRMgr_getLastButtonReleaseTS(USER_BUTTON);
         // ask for immediate UL with only us consulted
         AppCore_forceUL(APP_MOD_PTI);
     } else {
         log_noout("MP:button pressed");
+    }
+}
+// callback each time extio changes state
+static void doorChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_PRESS_TYPE_t currentPressType) {
+    if (currentState==SR_BUTTON_RELEASED) {
+        // note using log_noout as button shares GPIO with debug log uart...
+        log_noout("MP:door opened");
+        _ctx.lastDoorOpenedTS = TMMgr_getRelTimeMS();
+        // ask for immediate UL with only us consulted
+        AppCore_forceUL(APP_MOD_PTI);
+    } else {
+        log_noout("MP:door closeded");
+        _ctx.lastDoorClosedTS = TMMgr_getRelTimeMS();
+        // ask for immediate UL with only us consulted
+        AppCore_forceUL(APP_MOD_PTI);
     }
 }
