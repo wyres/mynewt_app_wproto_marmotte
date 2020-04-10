@@ -15,6 +15,7 @@
  */
 
 #include "os/os.h"
+#include "bsp/bsp.h"
 
 #include "wyres-generic/wutils.h"
 #include "wyres-generic/timemgr.h"

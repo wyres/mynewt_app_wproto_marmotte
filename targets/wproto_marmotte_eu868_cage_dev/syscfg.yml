@@ -1,4 +1,7 @@
 syscfg.vals: 
+    BSP_POWER_SETUP: 0
+    OS_TICKLESS_RTC: 0
+
     # dev build
     BUILD_RELEASE : 0
 
@@ -41,8 +44,8 @@ syscfg.vals:
     UART_SELECT0: -1
     UART_SELECT1: -1
     
-    BUTTON_IO : 19  # PB3
-    DOOR_IO : 8     # PA8
+    BUTTON_IO : CN4_7       # PB12
+    DOOR_IO : CN4_3         # PB14
 
     #lora wan
     LORAWAN_REGION_EU868: 1

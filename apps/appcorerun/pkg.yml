@@ -25,16 +25,11 @@ pkg.homepage: "wyres.eu"
 pkg.keywords:
 
 pkg.deps:
-    - "@apache-mynewt-core/kernel/os"
+    - "@app-generic/app-core"
     - "@apache-mynewt-core/libc/baselibc"
-    - "@apache-mynewt-core/hw/hal"
-    - "@apache-mynewt-core/hw/bus/drivers/i2c_common"
-    - "@apache-mynewt-core/hw/bus/drivers/i2c_hal"
     - "@apache-mynewt-core/sys/console/stub"
     - "@apache-mynewt-core/sys/log/stub"
-    - "@generic/generic"
 
 # using baselibc in this app
 pkg.lflags: -nostdlib
 
-pkg.init:

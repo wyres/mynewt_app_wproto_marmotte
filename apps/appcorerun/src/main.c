@@ -6,7 +6,8 @@
 #include <assert.h>
 #include "sysinit/sysinit.h"
 #include "os/os.h"
-#include "bsp.h"
+#include "bsp/bsp.h"
+#include "hal/hal_gpio.h"
 
 #include "build.h"
 
@@ -36,8 +37,16 @@ main(int argc, char **argv)
 #ifdef ARCH_sim
     mcu_sim_parse_args(argc, argv);
 #endif
-    // Allow debugger to get its rear in gear (otherwise misses initial breakpoints)
-    //TMMgr_busySleep(5000);
+    // Allow debugger to get its rear in gear (otherwise misses initial breakpoints) and signal booting
+    hal_gpio_init_out(LED_1, 1);
+    for (int i=0;i<5;i++) {
+        TMMgr_busySleep(500);
+        hal_gpio_write(LED_1, 1);
+        TMMgr_busySleep(500);
+        hal_gpio_write(LED_1, 0);
+    }
+    hal_gpio_deinit(LED_1);
+
     // init everyone
     sysinit();
 
