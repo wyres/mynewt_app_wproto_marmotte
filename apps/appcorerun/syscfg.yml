@@ -44,3 +44,12 @@ syscfg.vals:
     OS_MAIN_STACK_SIZE: 512
     # rebootmgr handles watchdogging not the OS
     WATCHDOG_INTERVAL : 0
+
+    # appcore setup for this application : always send UL every 5 minutes when activated, use SF12 for range, and blick leds to show working
+    IDLETIME_MOVING_SECS: 300
+    IDLETIME_NOTMOVING_MINS: 5
+    IDLETIME_INACTIVE_MINS: 120
+
+    LORA_DEFAULT_ADR: false
+    LORA_DEFAULT_SF: 12
+    ENABLE_ACTIVE_LEDS: 1
