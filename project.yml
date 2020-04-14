@@ -34,9 +34,8 @@ repository.apache-mynewt-core:
     type: github
     vers: 0.0.0
     user: brianwyld
-    repo: mynewt-core
-#    url: 'https://github.com/apache/mynewt-core.git'
-
+    url:  https://github.com/brianwyld/mynewt-core.git
+#    repo: mynewt-core
 
 repository.mcuboot:
     type: github
