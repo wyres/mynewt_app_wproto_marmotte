@@ -42,8 +42,8 @@
 #define USER_BUTTON  ((int8_t)MYNEWT_VAL(BUTTON_IO))
 #define DOOR_CONTACT  ((int8_t)MYNEWT_VAL(DOOR_IO))
 
-#define DOOR_OPEN (0)
-#define DOOR_CLOSED (1)
+#define DOOR_OPEN (1)
+#define DOOR_CLOSED (0)
 
 // define our specific ul tags that only the marmottes can deocde
 #define UL_TAG_CAGE_STATE (APP_CORE_UL_APP_SPECIFIC_START)
