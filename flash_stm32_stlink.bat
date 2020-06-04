@@ -1,7 +1,14 @@
 @echo on
+:: avoid env corruption
+SETLOCAL 
+
+:: get command name and cmd dir in case
+SET me=%~n0
+SET parent=%~dp0
+set BASE=%CD%
+
 :: flash the app hex file name in %1 to the attached target using a st-linkv2 (you can also use the st-tool directly)
 :: you should have madee hex image first using hex_maker.bat
-set BASE=%CD%
 :: and now flash it
 set OPENOCD=c:/soft/openocd-0.10.0
 :: openocd limitation : scripts MUST use a full path not relative one?
@@ -18,5 +25,18 @@ openocd -f %OPENOCD%/scripts/interface/stlink-v2.cfg -f %OPENOCD%/scripts/target
 ::Command: flash fillb address byte length
 ::
 ::   Fills flash memory with the specified double-word (64 bits), word (32 bits), halfword (16 bits), or byte (8-bit) pattern, starting at address and continuing for length units (word/halfword/byte). No erasure is done before writing; when needed, that must be done before issuing this command. Writes are done in blocks of up to 1024 bytes, and each write is verified by reading back the data and comparing it to what was written. The flash bank to use is inferred from the address of each block, and the specified length must stay within that bank. 
+
+:: call configmgr to set initial config if required (give devEUI as 16 hex digits). Other project specific appcore defaults set in the apps/syscfg.yml
+set deveui=%2
+set appkey=00112233445566778899AABBCCDDEEFF
+if not -%3-==-- ( set appkey=%3 )
+if not -%deveui%-==-- (
+    echo %deveui%
+    echo Configuring with devEUI %deveui% and appKey %appkey%
+    java -jar configmgr.jar --hexOutput config.hex --addConfig 0101:8:%deveui% --addConfig 0102:10:%appkey% 
+::    openocd -f %OPENOCD%/scripts/interface/stlink-v2.cfg -f %OPENOCD%/scripts/target/stm32l1.cfg -c "init; halt; program config.hex verify; reset;shutdown"
+    java -jar configmgr.jar -i config.hex --dumpConfig config.csv
+    echo done
+)
 
 exit /b
