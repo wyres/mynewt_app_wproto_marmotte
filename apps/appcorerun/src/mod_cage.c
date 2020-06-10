@@ -45,6 +45,9 @@
 #define DOOR_OPEN (1)
 #define DOOR_CLOSED (0)
 
+#define TEST_UL_CNT (2)         // tell backend about test button requiring ack in 2 ULs
+#define ALERT_UL_CNT (10)       // we tell backend about an alert requiring ack 10 times
+
 // define our specific ul tags that only the marmottes can deocde
 #define UL_TAG_CAGE_STATE (APP_CORE_UL_APP_SPECIFIC_START)
 
@@ -54,8 +57,8 @@ static struct appctx {
     uint32_t lastDoorOpenedTS;
     uint32_t lastDoorClosedTS;
     uint8_t ackId;
-    bool unackedAlert;
-    bool test;
+    uint8_t unackedAlert;
+    uint8_t test;
 } _ctx;
 
 static void buttonChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_PRESS_TYPE_t currentPressType);
@@ -70,7 +73,7 @@ static uint8_t mapDoorState(uint8_t buttonState) {
 }
 // My api functions
 static uint32_t start() {
-    if (_ctx.test) {
+    if (_ctx.test>0) {
         // Long light of correct led depending on door open or closed
         if (mapDoorState(SRMgr_getButton(DOOR_CONTACT))==DOOR_OPEN) {
             ledStart(LED_1, FLASH_ON, 10);
@@ -96,8 +99,8 @@ static void deepsleep() {
 static bool getData(APP_CORE_UL_t* ul) {
     log_info("MP: UL cage door[%s] test[%s] unacked alert[%s]", 
             (mapDoorState(SRMgr_getButton(DOOR_CONTACT))==DOOR_OPEN?"OPEN":"CLOSED"),
-            (_ctx.test?"YES":"NO"),
-            (_ctx.unackedAlert?"YES":"NO"));
+            (_ctx.test>0?"YES":"NO"),
+            (_ctx.unackedAlert>0?"YES":"NO"));
     // write to UL TS and current states
     /* structure equiv:
      * uint32_t lastOpenedTS;
@@ -111,19 +114,26 @@ static bool getData(APP_CORE_UL_t* ul) {
     Util_writeLE_uint32_t(ds, 0, _ctx.lastDoorOpenedTS);
     Util_writeLE_uint32_t(ds, 4, _ctx.lastDoorClosedTS);
     ds[8] = mapDoorState(SRMgr_getButton(DOOR_CONTACT));
-    ds[9] = (_ctx.unackedAlert?1:0);
-    ds[10] = (_ctx.test?1:0);
+    ds[9] = (_ctx.unackedAlert);
+    ds[10] = (_ctx.test);
     ds[11] = (AppCore_isDeviceActive()?1:0);
     app_core_msg_ul_addTLV(ul, UL_TAG_CAGE_STATE, 12, &ds[0]);
-    if (_ctx.unackedAlert || _ctx.test) {
+    if (_ctx.unackedAlert>0 || _ctx.test>0) {
         // request ack from app, giving id of this request (1 byte)
         app_core_msg_ul_addTLV(ul, APP_CORE_UL_APP_ACK_REQ, 1, &_ctx.ackId);
+    }
+    // Just in case backend non-functional, we don't keep on high alert forever
+    if (_ctx.unackedAlert>0) {
+        _ctx.unackedAlert--;
+    }
+    if (_ctx.test>0) {
+        _ctx.test--;
     }
     return true;       // all critical!
 }
 static void tick() {
     // Check if 'unacked alert' or 'test' flag is set, if so force UL now for this module
-    if (_ctx.unackedAlert || _ctx.test) {
+    if (_ctx.unackedAlert>0 || _ctx.test>0) {
         AppCore_forceUL(MY_MOD_ID);
     }
 }
@@ -157,10 +167,10 @@ void mod_cage_init(void) {
 // DL action indicating backend got my critical UL
 static void alertAcked(uint8_t* v, uint8_t l) {
     // clear flag saying alert (and test)
-    _ctx.unackedAlert = false;
+    _ctx.unackedAlert = 0;
     _ctx.ackId++;       // Ready for next time
-    if (_ctx.test) {
-        _ctx.test = false;
+    if (_ctx.test>0) {
+        _ctx.test = 0;
         // both LED on for 10s to show connection is good
         ledStart(LED_1, FLASH_ON, 10);
         ledStart(LED_2, FLASH_ON, 10);
@@ -177,7 +187,7 @@ static void buttonChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_
         // If short or medium press, then connection test (only if device is active)
         if (currentPressType==SR_BUTTON_SHORT || currentPressType==SR_BUTTON_MED) {
             if (AppCore_isDeviceActive()) {
-                _ctx.test = true;
+                _ctx.test = TEST_UL_CNT;
                 _ctx.lastButtonReleaseTS = SRMgr_getLastButtonReleaseTS(USER_BUTTON);
                 log_info("MP:doing cnx test");
                 // ask for immediate UL with only us consulted
@@ -207,13 +217,13 @@ static void doorChangeCB(void* ctx, SR_BUTTON_STATE_t currentState, SR_BUTTON_PR
         if (mapDoorState(currentState)==DOOR_OPEN) {
             log_info("MP:door opened");
             _ctx.lastDoorOpenedTS = TMMgr_getRelTimeMS();
-            _ctx.unackedAlert = true;
+            _ctx.unackedAlert = ALERT_UL_CNT;
             // ask for immediate UL with only us consulted
             AppCore_forceUL(MY_MOD_ID);
         } else {
             log_info("MP:door closed");
             _ctx.lastDoorClosedTS = TMMgr_getRelTimeMS();
-            _ctx.unackedAlert = true;
+            _ctx.unackedAlert = ALERT_UL_CNT;
             // ask for immediate UL with only us consulted
             AppCore_forceUL(MY_MOD_ID);
         }
