@@ -15,13 +15,14 @@ if -%deveui%-==-- (
     echo "Usage : %me% <deveui> [<appKey>]"
     exit /b
 )
-set appkey=00112233445566778899AABBCCDDEEFF
+:: set appkey=00112233445566778899AABBCCDDEEFF
+set appkey=FFEEDDCCBBAA99887766554433221100
 if not -%2-==-- ( set appkey=%2 )
 set outfile=config_%deveui%.hex
 
 echo Configuring with devEUI %deveui% and appKey %appkey%
 :: note the key 040C as this is proto board
-java -jar configmgr.jar --hexOutput ./%outfile% --addConfig 0101:8:%deveui% --addConfig 0103:10:%appkey% --addConfig 040C:1:1
+java -jar configmgr.jar --hexOutput ./%outfile% --addConfig 0101:8:%deveui% --addConfig 0103:10:%appkey% --addConfig 040C:1:01
 :: openocd -f %OPENOCD%/scripts/interface/stlink-v2.cfg -f %OPENOCD%/scripts/target/stm32l1.cfg -c "init; halt; program config.hex verify; reset;shutdown"
 :: openocd not working with PROM writes yet
 java -jar configmgr.jar -i ./%outfile% --dumpConfig config.csv
